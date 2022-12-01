@@ -6,6 +6,7 @@ Resources:
   EmailTable:
     Type: AWS::DynamoDB::Table
     Properties: 
+      TableName: "EmailTable"
       AttributeDefinitions: 
         - AttributeName: email
           AttributeType: S
@@ -13,7 +14,7 @@ Resources:
         - AttributeName: email
           KeyType: HASH
       ProvisionedThroughput: 
-        ReadCapacityUnits: 5
+        ReadCapacityUnits: 1
         WriteCapacityUnits: 1
 
   # Each Lambda function is defined by properties:
