@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Description: email-verifier
+
+Resources:
+  EmailTable:
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      AttributeDefinitions: 
+        - AttributeName: email
+          AttributeType: S
+      KeySchema: 
+        - AttributeName: email
+          KeyType: HASH
+      ProvisionedThroughput: 
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 1
+
+  # Each Lambda function is defined by properties:
+  # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+
+  # This is a Lambda function config associated with the source code: hello-from-lambda.js
+  helloFromLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/hello-from-lambda.helloFromLambdaHandler
+      Runtime: nodejs18.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A Lambda function that returns a static string.
+      Policies:
+        # Give Lambda basic execution Permission to the helloFromLambda
+        - AWSLambdaBasicExecutionRole
+      FunctionUrlConfig:
+        AuthType: NONE
+        Cors:
+          AllowMethods:
+          - POST
+          AllowOrigins:
+          - https://handex.io
+          - http://localhost
+
+  DbConnector:
+    Type: AWS::Serverless::Connector
+    Properties:
+      Source:
+        Id: helloFromLambdaFunction
+      Destination:
+        Id: EmailTable
+      Permissions:
+      - Read
+      - Write

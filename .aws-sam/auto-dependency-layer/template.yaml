@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform:
+- AWS::Serverless-2016-10-31
+Description: email-verifier
+Resources:
+  EmailTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+      - AttributeName: email
+        AttributeType: S
+      KeySchema:
+      - AttributeName: email
+        KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 1
+  helloFromLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/hello-from-lambda.helloFromLambdaHandler
+      Runtime: nodejs18.x
+      Architectures:
+      - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: A Lambda function that returns a static string.
+      Policies:
+      - AWSLambdaBasicExecutionRole
+      FunctionUrlConfig:
+        AuthType: NONE
+        Cors:
+          AllowMethods:
+          - POST
+          AllowOrigins:
+          - https://handex.io
+          - http://localhost
+      CodeUri: helloFromLambdaFunction
+      Layers:
+      - Fn::GetAtt:
+        - AwsSamAutoDependencyLayerNestedStack
+        - Outputs.helloFromLambdaFunction8583c9baDepLayer
+    Metadata:
+      SamResourceId: helloFromLambdaFunction
+  DbConnector:
+    Type: AWS::Serverless::Connector
+    Properties:
+      Source:
+        Id: helloFromLambdaFunction
+      Destination:
+        Id: EmailTable
+      Permissions:
+      - Read
+      - Write
+  AwsSamAutoDependencyLayerNestedStack:
+    DeletionPolicy: Delete
+    Metadata:
+      CreatedBy: AWS SAM CLI sync command
+    Properties:
+      TemplateURL: D:\T3\Projects\self\email-verifier\.aws-sam\auto-dependency-layer\adl_nested_template.yaml
+    Type: AWS::CloudFormation::Stack
