@@ -13,16 +13,13 @@ function isHTML(value) {
     (value.includes('<body') || value.includes('<div') || value.includes('<s') || value.includes('<h') || value.includes('<p'));
 };
 
-function validateEmail(email) {
+function isValidEmail(email) {
   const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return re.test(String(email).toLowerCase());
 }
 
-export const handler = async event => {
-  console.log("EVENT:", JSON.stringify(event));
-  var requestData = {
-    
-  };
+const eventToRequestData = event => {
+    var requestData = {};
   //Validate and parse event
   if (event && event.requestContext.http.method === 'OPTIONS') {
     return processResponse(IS_CORS);
@@ -44,17 +41,24 @@ export const handler = async event => {
       requestData[segment.split("=")[0]] = segment.split("=")[1];
     })
   }
+}
+
+export const handler = async event => {
+  console.log("EVENT:", JSON.stringify(event));
   // If verificationKey and email are in the request:
   // 1. Upsert the db where email and event.verificationKey matches the db record
+
+  var requestData = eventToRequestData(event);
   if (requestData.verificationKey) {
     // Update email-table and set verified to true
 
-    await dynamoDb.update({
+    dynamoDb.update({
       TableName: TABLE_NAME,
       Item: requestData
-    })
+    });
+    return processResponse(IS_CORS);
   }
-  if (!requestData.email || !validateEmail(requestData.email)) {
+  if (!requestData.email || !isValidEmail(requestData.email)) {
     return processResponse(IS_CORS, "contact missing or malformed email", 400);
   }
   requestData.createdDate = new Date().toISOString();
