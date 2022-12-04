@@ -1,23 +1,34 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
-Description: >-
-  email-verifier
+Description: email-verifier-stack
 
+Globals:
+  Function:
+    Runtime: nodejs18.x
+    Timeout: 100
+    MemorySize: 128
+    Architectures:
+      - "x86_64"
 
-# Resources declares the AWS resources that you want to include in the stack
-# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html
 Resources:
+  EmailVerifier:
+    Type: AWS::S3::Bucket
   EmailTable:
     Type: AWS::DynamoDB::Table
     Properties: 
+      TableName: "email-table"
       AttributeDefinitions: 
         - AttributeName: email
+          AttributeType: S
+        - AttributeName: verificationKey
           AttributeType: S
       KeySchema: 
         - AttributeName: email
           KeyType: HASH
+        - AttributeName: verificationKey
+          KeyType: RANGE
       ProvisionedThroughput: 
-        ReadCapacityUnits: 5
+        ReadCapacityUnits: 1
         WriteCapacityUnits: 1
 
   # Each Lambda function is defined by properties:
@@ -27,13 +38,13 @@ Resources:
   helloFromLambdaFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: src/handlers/hello-from-lambda.helloFromLambdaHandler
-      Runtime: nodejs18.x
-      Architectures:
-        - x86_64
-      MemorySize: 128
-      Timeout: 100
+      FunctionName: email-verifier
+      Handler: src/email-verifier.handler
       Description: A Lambda function that returns a static string.
+      Environment:
+        Variables:
+          TABLE_NAME: email-table
+          FROM_EMAIL: admin@thefullertonian.com
       Policies:
         # Give Lambda basic execution Permission to the helloFromLambda
         - AWSLambdaBasicExecutionRole
@@ -42,6 +53,7 @@ Resources:
         Cors:
           AllowMethods:
           - POST
+          - GET
           AllowOrigins:
           - https://handex.io
           - http://localhost

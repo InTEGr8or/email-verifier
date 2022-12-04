@@ -1,12 +1,12 @@
 // Import helloFromLambdaHandler function from hello-from-lambda.mjs
-import { helloFromLambdaHandler } from '../../../src/handlers/hello-from-lambda.mjs';
+import { handler } from '../../../src/email-verifier.mjs';
 
 // This includes all tests for helloFromLambdaHandler()
 describe('Test for hello-from-lambda', function () {
     // This test invokes helloFromLambdaHandler() and compare the result 
     it('Verifies successful response', async () => {
         // Invoke helloFromLambdaHandler()
-        const result = await helloFromLambdaHandler();
+        const result = await handler({"body":"{\"email\":\"test@email.com\""});
         /* 
             The expected result should match the return from your Lambda function.
             e.g. 
