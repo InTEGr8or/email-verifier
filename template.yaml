@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: 2010-09-09
+AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: email-verifier-stack
 
@@ -13,6 +13,8 @@ Globals:
 Resources:
   EmailVerifier:
     Type: AWS::S3::Bucket
+  #   Properties:
+  #     BucketName: "'email-verifier-function'"
   EmailTable:
     Type: AWS::DynamoDB::Table
     Properties: 
@@ -20,13 +22,9 @@ Resources:
       AttributeDefinitions: 
         - AttributeName: email
           AttributeType: S
-        - AttributeName: verificationKey
-          AttributeType: S
       KeySchema: 
         - AttributeName: email
           KeyType: HASH
-        - AttributeName: verificationKey
-          KeyType: RANGE
       ProvisionedThroughput: 
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
@@ -34,37 +32,37 @@ Resources:
   # Each Lambda function is defined by properties:
   # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
 
-  # This is a Lambda function config associated with the source code: hello-from-lambda.js
-  helloFromLambdaFunction:
+  # This is a Lambda function config associated with the source code: email-verifier.mjs
+  emailVerifierFunction:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: email-verifier
       Handler: src/email-verifier.handler
       Description: A Lambda function that returns a static string.
+      Tracing: Active
       Environment:
         Variables:
           TABLE_NAME: email-table
-          FROM_EMAIL: admin@thefullertonian.com
+          FROM_EMAIL: mark@handex.io
+          # FUNCTION_URL: !GetAtt emailVerifier.FunctionUrlConfig
       Policies:
-        # Give Lambda basic execution Permission to the helloFromLambda
+        # Give Lambda basic execution Permission to the emailVerifier
         - AWSLambdaBasicExecutionRole
+        - AmazonSESFullAccess
       FunctionUrlConfig:
         AuthType: NONE
-        Cors:
-          AllowMethods:
-          - POST
-          - GET
-          AllowOrigins:
-          - https://handex.io
-          - http://localhost
 
   DbConnector:
     Type: AWS::Serverless::Connector
     Properties:
       Source:
-        Id: helloFromLambdaFunction
+        Id: emailVerifierFunction
       Destination:
         Id: EmailTable
       Permissions:
       - Read
       - Write
+Outputs:
+  lambdaURL:
+    Description: Email-sender Lambda URL
+    Value: !GetAtt emailVerifierFunctionUrl.FunctionUrl

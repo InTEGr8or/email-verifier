@@ -1,3 +1,3 @@
-GET https://akhy7i2ibwp7mep23teaib2wga0pypdu.lambda-url.us-east-1.on.aws
-?email=test@email.com
+GET https://juqghmrxicl6e4smrfjwyaaire0hcaan.lambda-url.us-east-1.on.aws/
+?email=mark@thefullertonian.com
 &verificationKey=c8dc050b-0445-46fa-b7b7-18a0729bede2

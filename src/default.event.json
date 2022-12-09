@@ -1,3 +1,8 @@
 {
-  "body": "{\"email\":\"test1@email.com\"}"
+  "body": "{\"email\":\"test1@email.com\"}",
+  "requestContext": {
+    "http": {
+      "method": "POST"
+    }
+  }
 }
