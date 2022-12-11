@@ -139,9 +139,21 @@ For an introduction to the AWS SAM specification, the AWS SAM CLI, and serverles
 
 Next, you can use the AWS Serverless Application Repository to deploy ready-to-use apps that go beyond Hello World samples and learn how authors developed their applications. For more information, see the [AWS Serverless Application Repository main page](https://aws.amazon.com/serverless/serverlessrepo/) and the [AWS Serverless Application Repository Developer Guide](https://docs.aws.amazon.com/serverlessrepo/latest/devguide/what-is-serverlessrepo.html).
 
+## SAM sync gets stuck
+
+Troubleshooting tips for stuck `sam sync` operations
+
+- Previous sync left a stack in ROLLBACK_COMPLETE status and it cannot be updated
+  - `sam delete --stack-name <stack_name>
+- Something about dependencies
+  - yarn OR npm install
+  - OR remove node_modules and reinstall, if you think there might be stale dependencies from the weird nonsense you've been doing with dependencies and multiple package installers, like me.
+  
 ## Convert to TypeScript
 
 yarn global add tsc
 yarn add save-dev typescript
 yarn add save-dev ts-node
 yarn global add typesync
+
+https://z2z4aaf77ua232x5h5iad6f7gq0lnrwf.lambda-url.us-east-1.on.aws?email=mark@thefullertonian.com&verificationKey=47807633-4803-4982-bb42-b2859dabbf3f

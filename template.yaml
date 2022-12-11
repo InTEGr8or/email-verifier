@@ -43,14 +43,23 @@ Resources:
       Environment:
         Variables:
           TABLE_NAME: email-table
+          IS_CORS: true
           FROM_EMAIL: mark@handex.io
-          # FUNCTION_URL: !GetAtt emailVerifier.FunctionUrlConfig
+          EMAIL_VERIFIED_URL: "https://handex.io/email-verified"
+          FUNCTION_URL: "https://z2z4aaf77ua232x5h5iad6f7gq0lnrwf.lambda-url.us-east-1.on.aws"
       Policies:
         # Give Lambda basic execution Permission to the emailVerifier
         - AWSLambdaBasicExecutionRole
         - AmazonSESFullAccess
       FunctionUrlConfig:
         AuthType: NONE
+        Cors:
+          AllowMethods:
+          - POST
+          - GET
+          AllowOrigins:
+          - https://handex.io
+          - http://localhost
 
   DbConnector:
     Type: AWS::Serverless::Connector

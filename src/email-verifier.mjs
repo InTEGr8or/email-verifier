@@ -7,7 +7,9 @@ const dynamoDb = new AWS.DynamoDB.DocumentClient();
 const SES = new AWS.SES();
 const TABLE_NAME = process.env.TABLE_NAME;
 const FROM_EMAIL = process.env.FROM_EMAIL;
-const IS_CORS = true;
+const FUNCTION_URL = process.env.FUNCTION_URL;
+const EMAIL_VERIFIED_URL = process.env.EMAIL_VERIFIED_URL;
+const IS_CORS = process.env.IS_CORS;
 const UTF8CHARSET = 'UTF-8';
 
 function isValidEmail(email) {
@@ -40,10 +42,52 @@ const eventToRequestData = event => {
   }
   return requestData;
 }
+const createLink = (toEmail, verificationKey) => {
+  const verificationData = {email: toEmail, verificationKey: verificationKey};
+  const verificationJson = JSON.stringify(verificationData);
+  console.log("verificationJson:", verificationJson);
+  const emailToB64 = btoa(verificationJson);
+  console.log("emailtoB64:", emailToB64);
+  const verificationLink = `${FUNCTION_URL}/verification${emailToB64}`;
+  return verificationLink;
+}
+const readLink = (rawPath) => {
+  console.log("rawPath:", rawPath);
+  const rawPathVerification = rawPath.replace("/verification", "");
+  console.log("rawPathVerification:", rawPathVerification);
+  const verificationJsonString = atob(rawPathVerification);
+  console.log("verificationJsonString:", verificationJsonString);
+  const verificationData = JSON.parse(verificationJsonString);
+  return verificationData;
+}
+
+const updateEmailVerification = async (email, verificationKey) => {
+  const thisDate = new Date().toISOString();
+  const updateData = {
+    TableName: TABLE_NAME,
+    Key: {
+      "email":  email
+    },
+    UpdateExpression: "SET verificationDate = :vDate",
+    ExpressionAttributeValues: {
+      ":vDate": `test`,
+      // ":v": {"S":`${verificationKey}`}
+    },
+    // ConditionExpression: `verificationKey == :v`,
+    ReturnValues: "ALL_NEW"
+  };
+  console.log("Set emailVerified in document:", updateData);
+  const dbResult = await dynamoDb.update(updateData, (err, data) => {
+    if(err) console.log(err, err.stack);
+    else console.log("DbUpdateData:", data);
+  }).promise();
+  return dbResult;
+}
 
 const sendVerificationAcknowledgment = async (toEmail, verificationKey) => {
   console.log("Starting verification link process")
-  const verificationLink = `?email=${toEmail}&verificationKey=${verificationKey}`
+  const verificationLink = createLink(toEmail, verificationKey);
+  console.log("verificationLink:", verificationLink);
   const emailParams = {
     Destination: {
       ToAddresses: [toEmail]
@@ -90,18 +134,20 @@ export const handler = async event => {
   var requestData = eventToRequestData(event);
 
   // Verify and exit, if includes verificationKey
-  if (requestData.verificationKey) {
-    // Update email-table and set verified to true
-    requestData.modifiedDate = new Date().toISOString();
-    dynamoDb.update({
-      TableName: TABLE_NAME,
-      Item: requestData
-    });
-    window.location = ;
+  if (event.rawPath.includes("/verification")) {
+    console.log("event.rawPath:", event.rawPath);
+    // extract verification info from rawPath
+    // - This preventes a querystring from breaking MS Mail email link
+    const verificationData = readLink(event.rawPath);
+    console.log("Verification:", verificationData);
+
+    // Update email-table 
+    const dbResult = await updateEmailVerification(verificationData.email, verificationData.verificationLink);
+    console.log("Update verification dbResult:", dbResult);
     const redirect = {
       statusCode: 302,
       headers: {
-        Location: "https://handex.io/email-verified"
+        Location: EMAIL_VERIFIED_URL
       }
     }
     return redirect;
@@ -115,15 +161,16 @@ export const handler = async event => {
   // Construct new email record
   requestData.createdDate = new Date().toISOString();
   requestData.verificationKey = uuidv4();
-  const params = {
+  const putParams = {
     TableName: TABLE_NAME,
     Item: requestData
   }
+  console.log("DB Put params:", putParams);
   try {
-    await dynamoDb.put(params).promise()
+    await dynamoDb.put(putParams).promise()
 
     // Send verification email
-    sendVerificationAcknowledgment(requestData.email, requestData.verificationKey);
+    await sendVerificationAcknowledgment(requestData.email, requestData.verificationKey);
     return processResponse(IS_CORS, "A Verification link has been sent to the email you provided", 200);
   } catch (error) {
     let errorResponse = `Error: Execution update, caused a Dynamodb error, please look at your logs.`;
