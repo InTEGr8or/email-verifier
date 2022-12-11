@@ -1,8 +1,0 @@
-{
-  "body": "{\"email\":\"mark@handex.io\"}",
-  "requestContext": {
-    "http": {
-      "method": "POST"
-    }
-  }
-}

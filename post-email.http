@@ -1,7 +1,0 @@
-GET "https://z2z4aaf77ua232x5h5iad6f7gq0lnrwf.lambda-url.us-east-1.on.aws"
-?email=mark@thefullertonian.com
-&verificationKey=c8dc050b-0445-46fa-b7b7-18a0729bede2
-
-
-###
-GET "https://z2z4aaf77ua232x5h5iad6f7gq0lnrwf.lambda-url.us-east-1.on.aws/verificationeyJlbWFpbCI6Im1hcmtAdGhlZnVsbGVydG9uaWFuLmNvbSIsInZlcmlmaWNhdGlvbktleSI6IjQ5MjU0NmRkLTNjNGEtNDVhOC1iZTdhLWEyY2UwZDE4MjdhMCJ9"
