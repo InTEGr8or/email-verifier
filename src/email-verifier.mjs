@@ -62,7 +62,7 @@ const readLink = (rawPath) => {
 }
 
 const updateEmailVerification = async (email, verificationKey) => {
-  const thisDate = new Date().toISOString();
+  const nowDate = new Date().toISOString();
   const updateData = {
     TableName: TABLE_NAME,
     Key: {
@@ -70,10 +70,10 @@ const updateEmailVerification = async (email, verificationKey) => {
     },
     UpdateExpression: "SET verificationDate = :vDate",
     ExpressionAttributeValues: {
-      ":vDate": `test`,
-      // ":v": {"S":`${verificationKey}`}
+      ":vDate": `${nowDate}`,
+      ":v": `${verificationKey}`
     },
-    // ConditionExpression: `verificationKey == :v`,
+    ConditionExpression: `verificationKey = :v`,
     ReturnValues: "ALL_NEW"
   };
   console.log("Set emailVerified in document:", updateData);
@@ -142,7 +142,7 @@ export const handler = async event => {
     console.log("Verification:", verificationData);
 
     // Update email-table 
-    const dbResult = await updateEmailVerification(verificationData.email, verificationData.verificationLink);
+    const dbResult = await updateEmailVerification(verificationData.email, verificationData.verificationKey);
     console.log("Update verification dbResult:", dbResult);
     const redirect = {
       statusCode: 302,
