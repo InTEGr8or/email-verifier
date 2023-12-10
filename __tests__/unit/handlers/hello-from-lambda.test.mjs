@@ -5,8 +5,19 @@ import { handler } from '../../../src/email-verifier.mjs';
 describe('Test for hello-from-lambda', function () {
     // This test invokes helloFromLambdaHandler() and compare the result 
     it('Verifies successful response', async () => {
+        // Create valid http request event
+        const event = {
+            requestContext: {
+                http: {
+                    method: 'POST',
+                    path: '/email-verifier'
+                },
+            },
+            body: "{\"email\":\"test@email.com\"}"
+        }
         // Invoke helloFromLambdaHandler()
-        const result = await handler({"body":"{\"email\":\"test@email.com\""});
+
+        const result = await handler(event);
         /* 
             The expected result should match the return from your Lambda function.
             e.g. 
@@ -17,4 +28,5 @@ describe('Test for hello-from-lambda', function () {
         // Compare the result with the expected result
         expect(result).toEqual(expectedResult);
     });
+
 });

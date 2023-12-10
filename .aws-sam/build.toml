@@ -6,7 +6,7 @@ codeuri = "D:\\T3\\Projects\\self\\email-verifier"
 runtime = "nodejs18.x"
 architecture = "x86_64"
 handler = "src/email-verifier.handler"
-manifest_hash = "abfdcc447a0787791f4c6db786f67f06"
+manifest_hash = "f52db6500710c2d9c56fef57a3697c50"
 packagetype = "Zip"
 functions = ["emailVerifierFunction"]
 

@@ -5,6 +5,9 @@ import processResponse from './process-response.js';
 
 const dynamoDb = new AWS.DynamoDB.DocumentClient();
 const SES = new AWS.SES();
+
+// require('dotenv').config();
+
 const TABLE_NAME = process.env.TABLE_NAME;
 const FROM_EMAIL = process.env.FROM_EMAIL;
 const FUNCTION_URL = process.env.FUNCTION_URL;
@@ -25,7 +28,6 @@ const eventToRequestData = event => {
   }
   if (event && event.requestContext.http.method === 'POST') {
     console.log("Processing POST data:", event);
-    if (!event) { return processResponse(IS_CORS, `Event object missing from call`) };
     if (!event.body) {
       console.error("MISSING EVENT BODY:", event)
       return processResponse(IS_CORS, `Handler event body not found.`, 400);
@@ -127,6 +129,7 @@ const sendVerificationAcknowledgment = async (toEmail, verificationKey) => {
 
 
 export const handler = async event => {
+  if (!event) { return processResponse(IS_CORS, `Event object missing from call`) };
   console.log("EVENT:", JSON.stringify(event));
   // If verificationKey and email are in the request:
   // 1. Upsert the db where email and event.verificationKey matches the db record
@@ -134,7 +137,7 @@ export const handler = async event => {
   var requestData = eventToRequestData(event);
 
   // Verify and exit, if includes verificationKey
-  if (event.rawPath.includes("/verification")) {
+  if (event.rawPath && event.rawPath.includes("/verification")) {
     console.log("event.rawPath:", event.rawPath);
     // extract verification info from rawPath
     // - This preventes a querystring from breaking MS Mail email link
